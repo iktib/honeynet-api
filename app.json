@@ -1,0 +1,10 @@
+{
+  "name": "sweet-pay",
+  "description": "This app does one little thing, and does it well.",
+  "keywords": [
+    "sweet",
+    "pay"
+  ],
+  "repository": "https://github.com/mkobilev/sweet-pay-api.git",
+  "image": "heroku/nodejs"
+}
