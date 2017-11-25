@@ -5,7 +5,6 @@ const Schema = mongoose.Schema;
 const bcrypt = require('bcrypt-nodejs');
 const uuid = require('node-uuid');
 
-
 const UserSchema = new Schema({
   //###################################################
   _id: {
@@ -13,28 +12,21 @@ const UserSchema = new Schema({
     default: uuid.v1,
     unique: true
   },
-  managerId: {
-    type: String
-  },
   isActivated: {
     type: Boolean,
     default: null
   },
   //###################################################
-  phone: {
+  email: {
     type: String,
     unique: true,
     validate: {
       validator: (v) => {
-        return /^\+7\d{10}$/.test(v);
+        return /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(v);
       },
-      message: '{VALUE} is not a valid phone number!'
+      message: '{VALUE} is not a valid email !'
     },
     required: true
-  },
-  whatsApp: {
-    type: String,
-    default: "Номер для WhatsApp",
   },
   password: {
     type: String,
@@ -43,42 +35,30 @@ const UserSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ['client', 'manager', 'forwarder'],
+    enum: ['client', 'admin'],
     default: 'client'
   },
   //###################################################
   fullName: {
     type: String,
-    default: "Имя Фамилия"
+    default: "не задано"
   },
   photoUrl: {
     type: String,
-    default: ""
+    default: "не задано"
   },
-  description: {
+  aboutSelf: {
     type: String,
-    default: "Комментарий"
+    default: "не задано"
   },
   //###################################################
   companyTitle: {
     type: String,
-    default: "Название компании"
-  },
-  companyAddress: {
-    type: String,
-    default: "Адрес компании"
-  },
-  workTimeFrom: {
-    type: String,
-    default: '10:00'
-  },
-  workTimeTo: {
-    type: String,
-    default: '18:00'
+    default: "не задано"
   },
   companyLogoUrl: {
     type: String,
-    default: ""
+    default: "не задано"
   }
   //###################################################
 }, {

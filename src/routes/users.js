@@ -5,7 +5,6 @@ require('../config/passport')(passport);
 var jwt = require('jsonwebtoken');
 
 const Users = require("../models/user");
-const Orders = require('../models/order');
 
 const router = express.Router();
 
@@ -46,7 +45,7 @@ const getToken = (headers) => {
 router.post('/signup', (req, res, next) => {
 
   const requiredParams = [
-    'phone',
+    'email',
     'password',
     'role'
   ];
@@ -64,8 +63,7 @@ router.post('/signup', (req, res, next) => {
   } else {
 
     var newUser = new Users({
-      phone: req.body.phone,
-      whatsApp: req.body.phon,
+      email: req.body.email,
       password: req.body.password,
       role: req.body.role
     });
@@ -83,7 +81,7 @@ router.post('/signup', (req, res, next) => {
         });
       } else if (createdUser) {
         var token = jwt.sign({
-            phone: newUser.phone,
+            email: newUser.email,
             role: newUser.role,
             id: newUser.id,
             isActivated: newUser.isActivated
@@ -119,6 +117,7 @@ router.post('/signup', (req, res, next) => {
 });
 
 // create (POST) -> new user (registration by manager)
+/*
 router.post('/createUser', (req, res, next) => {
 
   var allParams = [
@@ -230,12 +229,13 @@ router.post('/createUser', (req, res, next) => {
   }
 
 });
+*/
 
 // authorize (POST) -> single user
 router.post('/signin', (req, res, next) => {
 
   var requiredParams = [
-    'phone',
+    'email',
     'password'
   ];
 
@@ -509,93 +509,79 @@ router.post('/:id/resetPassword', (req, res, next) => {
 ///////////////////////////////////////////////////////////////////////////////////
 
 // read (GET) -> orders of specific user
-// filter=:desiredDate&skip=:skipNumber&size=:sizeValue
-
-router.get('/:id/orders', (req, res, next) => {
+router.get('/:id/honeyList', (req, res, next) => {
 
   var userId = req.params.id;
-  var date = req.query.filter;
-  var skipped = parseInt(req.query.skip);
-  var size = parseInt(req.query.size);
 
-  var searchParams = {
-    clientId: userId
-  };
+  Users.findOne({
+    _id: userId
+  }, (err, user) => {
 
-  if ((date !== 'none' && new Date(date) == 'Invalid Date') || !(skipped >= 0) || !(size >= 0)) {
-    console.error(`Ошибка запроса "GET /api/users/${userId}/orders/filter=${date}&skip=${skipped}&size=${size}" !`);
-    console.error('Данные, переданные в параметрах запроса, некорректны !');
+    if (err) {
+      console.error(`Ошибка запроса "GET /api/users/${userId}/honeyList" !`);
+      console.error(`Ошибка при получении списка ханипотов пользователя (id = ${userId}) !`);
+      console.error('ОШИБКА ->', err);
 
-    res.status(400).json({
-      success: false,
-      message: 'Данные, переданные в параметрах запроса, некорректны !'
-    });
-  } else {
+      res.status(400).json({
+        success: `Ошибка при получении пользователя (id = ${userId}) !`
+      });
+    } else if (user) {
 
-    if (date !== 'none') {
-      searchParams.deliveryDate = date
-    };
-
-    Orders.count(searchParams, (err, amountOfOrders) => {
-
-      if (err) {
-        console.error(`Ошибка запроса "GET /api/users/${userId}/orders/filter=${date}&skip=${skipped}&size=${size}" !`);
-        console.error(`Ошибка при подсчёте обшего количества подходящих заказов пользователя (id = ${userId}) !`);
-        console.error('ОШИБКА ->', err);
-
-        res.status(400).json({
-          success: false,
-          message: `Ошибка при подсчёте обшего количества подходящих заказов пользователя (id = ${userId}) !`
-        });
-      } else if (amountOfOrders) {
-
-        Orders.find(searchParams, (err, orders) => {
-
-          if (err) {
-            console.error(`Ошибка запроса "GET /api/users/${userId}/orders/filter=${date}&skip=${skipped}&size=${size}" !`);
-            console.error(`Ошибка при поиске подходящих заказов пользователя (id = ${userId}) !`);
-            console.error('ОШИБКА ->', err);
-
-            res.status(400).json({
-              success: false,
-              message: `Ошибка при поиске подходящих заказов пользователя (id = ${userId}) !`
-            });
-          } else if (orders) {
-            console.error(`Ошибка запроса "GET /api/users/${userId}/orders/filter=${date}&skip=${skipped}&size=${size}" !`);
-            console.error(`Подходящие заказы пользователя (id = ${userId}) были найдены.`);
-
-            res.status(200).json({
-              success: true,
-              message: `Подходящие заказы пользователя (id = ${userId}) были найдены.`,
-              total: amountOfOrders,
-              data: orders
-            });
-          }
-
-        })
-
-      } else {
-        console.error(`Ошибка запроса "GET /api/users/${userId}/orders/filter=${date}&skip=${skipped}&size=${size}" !`);
-        console.error(`Подходящие заказы пользователя (id = ${userId}) не получены !`);
+        console.error(`Запрос "GET /api/users/${userId}/honeyList" выполнен успешно !`);
+        console.error(`Cписок ханиптов пользователя (id = ${userId}) был получен.`);
 
         res.status(200).json({
-          success: false,
-          message: `Подходящие заказы пользователя (id = ${userId}) не получены !`,
-          total: 0,
-          data: []
+          success: true,
+          message: `Cписок ханиптов пользователя (id = ${userId}) был получен.`,
+          data: user.honeyList
         });
       }
 
-    });
+  });
+});
 
-  }
+// read (GET) -> single user
+router.get('/:id', (req, res, next) => {
+  
+  var userId = req.params.id;
+
+  Users.findById(userId, (err, user) => {
+
+    if (err) {
+      console.error(`Ошибка запроса "GET /api/users/${userId}" !`);
+      console.error(`Ошибка при поиске пользователя (id = ${userId}) !`);
+      console.error('ОШИБКА ->', err);
+
+      res.status(400).json({
+        success: false,
+        message: `Ошибка при поиске пользователя (id = ${userId}) !`
+      });
+    } else if (user) {
+      console.log(`Запрос "GET /api/users/${userId}" успешно выполнен.`);
+      console.log(`Пользователь (id = ${userId}) был найден.`);
+
+      res.status(200).json({
+        success: true,
+        message: `Пользователь (id = ${userId}) был найден.`,
+        data: user
+      });
+    } else {
+      console.error(`Ошибка запроса "GET /api/users/${userId}" !`);
+      console.error(`Пользователь (id = ${userId}) не найден !`);
+
+      res.status(200).json({
+        success: false,
+        message: `Пользователь (id = ${userId}) не найден !`,
+        data: {}
+      });
+    }
+
+  });
 
 });
 
 // read (GET) -> all members of level
 router.get('/', (req, res, next) => {
-
-  // role=:level&isActivated=:status
 
   var userRole = req.query.role;
   var isActivated = req.query.isActivated;
@@ -614,7 +600,7 @@ router.get('/', (req, res, next) => {
     searchParams.isActivated = null;
   }
 
-  if (['client', 'manager', 'forwarder'].indexOf(userRole) < 0) {
+  if (['client', 'admin'].indexOf(userRole) < 0) {
     console.error(`Ошибка запроса "GET /api/users?role=${userRole}" !`);
     console.error('Данные, переданные в параметрах запроса, некорректны !');
 
@@ -653,29 +639,29 @@ router.get('/', (req, res, next) => {
               message: `Ошибка при получении пользователей с ролью "${userRole}" !`
             });
           } else if (users) {
-            console.log(`Запрос "GET /api/users?role=${userRole}" успешно выполнен.`);
-            console.log(`Список пользователей с ролью "${userRole}" был получен.`);
+              console.log(`Запрос "GET /api/users?role=${userRole}" успешно выполнен.`);
+              console.log(`Список пользователей с ролью "${userRole}" был получен.`);
 
-            res.status(200).json({
-              success: true,
-              message: `Список пользователей с ролью "${userRole}" был получен.`,
-              total: amountOfUsers,
-              data: users
-            });
+              res.status(200).json({
+                success: true,
+                message: `Список пользователей с ролью "${userRole}" был получен.`,
+                total: amountOfUsers,
+                data: users
+              });
           }
 
         })
 
       } else {
-        console.error(`Ошибка запроса "GET /api/users?role=${userRole}" !`);
-        console.error(`Пользователи с ролью "${userRole}" не получены !`);
+          console.error(`Ошибка запроса "GET /api/users?role=${userRole}" !`);
+          console.error(`Пользователи с ролью "${userRole}" не получены !`);
 
-        res.status(200).json({
-          success: false,
-          message: `Пользователи с ролью "${userRole}" не получены !`,
-          total: 0,
-          data: []
-        });
+          res.status(200).json({
+            success: false,
+            message: `Пользователи с ролью "${userRole}" не получены !`,
+            total: 0,
+            data: []
+          });
       }
     });
 
@@ -683,103 +669,6 @@ router.get('/', (req, res, next) => {
 
 });
 
-// read (GET) -> single user
-router.get('/:id', (req, res, next) => {
-
-  var userId = req.params.id;
-
-  Users.findById(userId, (err, user) => {
-
-    if (err) {
-      console.error(`Ошибка запроса "GET /api/users/${userId}" !`);
-      console.error(`Ошибка при поиске пользователя (id = ${userId}) !`);
-      console.error('ОШИБКА ->', err);
-
-      res.status(400).json({
-        success: false,
-        message: `Ошибка при поиске пользователя (id = ${userId}) !`
-      });
-    } else if (user) {
-      console.log(`Запрос "GET /api/users/${userId}" успешно выполнен.`);
-      console.log(`Пользователь (id = ${userId}) был найден.`);
-
-      res.status(200).json({
-        success: true,
-        message: `Пользователь (id = ${userId}) был найден.`,
-        data: user
-      });
-    } else {
-      console.error(`Ошибка запроса "GET /api/users/${userId}" !`);
-      console.error(`Пользователь (id = ${userId}) не найден !`);
-
-      res.status(200).json({
-        success: false,
-        message: `Пользователь (id = ${userId}) не найден !`,
-        data: {}
-      });
-    }
-
-  });
-
-});
-
-// read (GET) -> all users
-/* TODO - говнокод */
-/* router.get('/', (req, res, next) => {
-  
-  Users.count({}, (err, amountOfUsers) => {
-
-    if (err) {
-      console.error('Ошибка запроса "GET /api/users" !');
-      console.error('Ошибка при подсчёте обшего количества пользователей !');
-      console.error('ОШИБКА ->', err);
-
-      res.status(400).json({
-        success: false,
-        message: 'Ошибка при подсчёте обшего количества пользователей !'
-      });
-    } else if (amountOfUsers) {
-
-      Users.find({}, (err, users) => {
-
-        if (err) {
-          console.error('Ошибка запроса "GET /api/users" !');
-          console.error('Ошибка при поиске всех пользователей !');
-          console.error('ОШИБКА ->', err);
-
-          res.status(400).json({
-            success: false,
-            message: 'Ошибка при поиске всех пользователей !'
-          });
-        } else if (users) {
-          console.log('Запрос "GET /api/users" успешнов выполнен.');
-          console.log('Все пользователи были найдены.');
-          res.status(200).json({
-            success: true,
-            message: 'Все пользователи были найдены.',
-            total: amountOfUsers,
-            data: users
-          });
-        }
-
-      });
-
-    } else {
-      console.error('Ошибка запроса "GET /api/users" !');
-      console.error('Все пользователи не были получены !');
-
-      res.status(200).json({
-        success: false,
-        message: 'Все пользователи не были получены !',
-        total: amountOfUsers,
-        data: []
-      });
-    }
-
-  });
-
-});
- */
 ///////////////////////////////////////////////////////////////////////////////////
 
 // update (PUT) -> single user
@@ -801,20 +690,12 @@ router.put('/:id', (req, res, next) => {
     } else if (user && req.body) {
 
       user.set({
-        phone: req.body.phone || user.phone,
-        whatsApp: req.body.whatsApp || user.whatsApp,
-        role: user.role,
-        //###################################################
+        honeyList: req.body.honeyList || user.honeyList,
         fullName: req.body.fullName || user.fullName,
         photoUrl: req.body.photoUrl || user.photoUrl,
-        description: req.body.description || user.description,
-        //###################################################
+        aboutSelf: req.body.aboutSelf || user.aboutSelf,
         companyTitle: req.body.companyTitle || user.companyTitle,
-        companyAddress: req.body.companyAddress || user.companyAddress,
-        workTimeFrom: req.body.workTimeFrom || user.workTimeFrom,
-        workTimeTo: req.body.workTimeTo || user.workTimeTo,
         companyLogoUrl: req.body.companyLogoUrl || user.companyLogoUrl,
-        //###################################################
         isActivated: req.body.isActivated
       });
 
@@ -829,22 +710,15 @@ router.put('/:id', (req, res, next) => {
             success: false,
             message: `Ошибка при обновлении пользователя (id = ${userId}) !`
           });
+
         } else if (updatedUser) {
-          console.log(`Запрос "PUT /api/users/${userId}" успешно выполнен.`);
-          console.log(`Пользователь (id = ${userId}) был обновлён.`);
+            console.log(`Запрос "PUT /api/users/${userId}" успешно выполнен.`);
+            console.log(`Пользователь (id = ${userId}) был обновлён.`);
 
-          res.status(200).json({
-            success: true,
-            message: `Пользователь (id = ${userId}) был обновлён.`,
-            data: updatedUser
-          });
-        } else {
-          console.error(`Ошибка запроса "PUT /api/users/${userId}" !`);
-          console.error(`Пользователь (id = ${userId}) не был обновлен !`);
-
-          res.status(200).json({
-            success: false,
-            message: `Пользователь (id = ${userId}) не был обновлен !`
+            res.status(200).json({
+              success: true,
+              message: `Пользователь (id = ${userId}) был обновлён.`,
+              data: updatedUser
           });
         }
 

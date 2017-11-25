@@ -16,10 +16,11 @@ var logger = morgan('combined');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
-var orders = require('./routes/orders');
+var honeyTypes = require('./routes/honeyTypes');
+var honeyNotes = require('./routes/honeyNotes');
+var honeyActivity = require('./routes/honeyActivity');
 
 var fcm = require('./routes/fcm');
-
 
 var app = express();
 
@@ -82,10 +83,13 @@ app.use(expressValidator());
 app.use(express.static(path.join(__dirname, 'public')))
 
 /* Routes */
-app.use('/', index)
-app.use('/api/users', users)
-app.use('/api/orders', orders)
-app.use('/api/fcm', fcm)
+app.use('/', index);
+
+app.use('/api/users', users);
+app.use('/api/honeyTypes', honeyTypes);
+app.use('/api/honeyNotes', honeyNotes);
+app.use('/api/honeyActivity', honeyActivity);
+app.use('/api/fcm', fcm);
 
 
 app.use(function (err, req, res, next) {
