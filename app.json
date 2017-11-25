@@ -1,10 +1,10 @@
 {
-  "name": "sweet-pay",
-  "description": "This app does one little thing, and does it well.",
+  "name": "honey-net-api",
+  "description": "Network for using honeypots",
   "keywords": [
-    "sweet",
-    "pay"
+    "honeypot",
+    "net"
   ],
-  "repository": "https://github.com/mkobilev/sweet-pay-api.git",
+  "repository": "https://github.com/iktib/honeynet-api.git",
   "image": "heroku/nodejs"
 }
