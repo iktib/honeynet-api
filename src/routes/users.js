@@ -690,13 +690,12 @@ router.put('/:id', (req, res, next) => {
     } else if (user && req.body) {
 
       user.set({
-        honeyList: req.body.honeyList || user.honeyList,
         fullName: req.body.fullName || user.fullName,
         photoUrl: req.body.photoUrl || user.photoUrl,
         aboutSelf: req.body.aboutSelf || user.aboutSelf,
         companyTitle: req.body.companyTitle || user.companyTitle,
         companyLogoUrl: req.body.companyLogoUrl || user.companyLogoUrl,
-        isActivated: req.body.isActivated
+        isActivated: req.body.isActivated || user.isActivated
       });
 
       user.save((err, updatedUser) => {

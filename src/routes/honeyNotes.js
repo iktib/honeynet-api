@@ -92,6 +92,69 @@ router.post('/', (req, res, next) => {
 
 });
 
+// read (GET) -> filter all honeyNotes by clientId
+router.get('/filter', (req, res, next) => {
+  
+  var clientId = req.query.clientId;
+  
+  var searchParams = {
+    clientId: clientId
+  };
+
+  HoneyNote.count(searchParams, (err, amountOfHoneyNotes) => {
+
+    if (err) {
+      console.error(`Ошибка запроса "GET /api/honeyNotes?clientId=${clientId}" !`);
+      console.error(`Ошибка при подсчёте количества ханипотов с clientId=${clientId} !`);
+      console.error('ОШИБКА ->', err);
+
+      res.status(400).json({
+        success: false,
+        message: `Ошибка при подсчёте количества ханипотов с clientId=${clientId} !`
+      });
+    } else if (amountOfHoneyNotes) {
+
+      HoneyNote.find(searchParams, (err, honeyNotes) => {
+
+        if (err) {
+          console.error(`Ошибка запроса "GET /api/honeyNotes?clientId=${clientId}" !`);
+          console.error(`Ошибка при получении списка ханипотов с clientId=${clientId} !`);
+          console.error('ОШИБКА ->', err);
+
+          res.status(400).json({
+            success: false,
+            message: `Ошибка при получении списка ханипотов с clientId=${clientId} !`
+          });
+        } else if (honeyNotes) {
+            console.log(`Запрос "GET /api/honeyNotes?clientId=${clientId}" успешно выполнен.`);
+            console.log(`Cписок ханипотов с clientId=${clientId} была получен.`);
+
+            res.status(200).json({
+                success: true,
+                message: `Список ханипотов с clientId=${clientId} была получен.`,
+                total: amountOfHoneyNotes,
+                data: honeyNotes
+            });
+          }
+
+        });
+    
+    } else {
+        console.error(`Ошибка запроса "GET /api/honeyNotes?clientId=${clientId}" !`);
+        console.error(`Ханипоты с clientId=${clientId} не были получены !`);
+
+        res.status(200).json({
+            success: true,
+            message: `Ханипоты с clientId=${clientId} не были получены !`,
+            total: 0,
+            data: []
+        });
+    }
+
+  });
+
+});
+
 // read (GET) -> all honeyNotes
 router.get('/', (req, res, next) => {
 
@@ -150,8 +213,8 @@ router.get('/', (req, res, next) => {
     });
 
 });
-  
-// read (GET) -> single honeyNote
+
+// read (GET) -> single honeyNote by id
 router.get('/:id', (req, res, next) => {
 
   var honeyNoteId = req.params.id;
