@@ -233,7 +233,7 @@ router.post('/createUser', (req, res, next) => {
 
 // authorize (POST) -> single user
 router.post('/signin', (req, res, next) => {
-
+  
   var requiredParams = [
     'email',
     'password'
@@ -252,7 +252,7 @@ router.post('/signin', (req, res, next) => {
   } else {
 
     Users.findOne({
-      phone: req.body.phone
+      email: req.body.email
     }).select('+password').exec((err, user) => {
 
       if (err) {
@@ -271,7 +271,7 @@ router.post('/signin', (req, res, next) => {
 
             // if user is found and password is right create a token
             var token = jwt.sign({
-                phone: user.phone,
+                email: user.email,
                 role: user.role,
                 id: user.id,
                 isActivated: user.isActivated
